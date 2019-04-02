@@ -1,0 +1,38 @@
+app-id: com.github.openarl.pathofbuilding
+branch: stable
+
+runtime: org.winepak.Platform
+runtime-version: 3.0
+sdk: org.winepak.Sdk
+
+command: path-of-building
+
+add-extensions:
+  org.winepak.Platform.Compat32:
+    directory: lib/32bit
+    version: 3.0
+    add-ld-path: lib
+    no-autodownload: false
+
+finish-args:
+  - --socket=x11
+
+modules:
+    - name: path-of-building
+      buildsystem: simple
+      build-commands: 
+        - mkdir -p /app/lib/32bit
+        - ln -s /app/lib/32bit/lib/ld-linux.so.2 /app/lib/ld-linux.so.2
+        - install -d /app/bin
+        - unzip -qq -d /app/bin PathOfBuilding-1.4.131.zip
+        - install path-of-building /app/bin
+      sources:
+        - type: file
+          path: PathOfBuilding-1.4.131.zip
+
+        - type: script
+          dest-filename: path-of-building
+          commands:
+            - export WINEARCH=win64
+            - wineboot
+            - wine64 '/app/bin/Path of Building.exe'
