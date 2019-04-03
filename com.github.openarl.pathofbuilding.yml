@@ -16,6 +16,8 @@ add-extensions:
 
 finish-args:
   - --socket=x11
+  - --share=ipc
+  - --device=dri
 
 modules:
     - name: path-of-building
