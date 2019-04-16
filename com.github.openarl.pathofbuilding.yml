@@ -2,39 +2,65 @@ app-id: com.github.openarl.pathofbuilding
 branch: stable
 
 runtime: org.winepak.Platform
-runtime-version: 3.0
+runtime-version: "3.0"
 sdk: org.winepak.Sdk
 
 command: path-of-building
 
 add-extensions:
   org.winepak.Platform.Compat32:
-    directory: lib/32bit
-    version: 3.0
+    directory: lib/wine-32bit
+    version: "3.0"
     add-ld-path: lib
     no-autodownload: false
+
+build-options:
+  build-args:
+    - --socket=x11
+    - --share=ipc
+    - --device=dri
+    - --share=network
+      #env:
+      #WINEPREFIX: /app/wine
 
 finish-args:
   - --socket=x11
   - --share=ipc
   - --device=dri
+  - --share=network
+    #- --filesystem=xdg-documents
+    #- --filesystem=/app/bin:rw
+    #- --filesystem=Z:\app\bin
+    #- --env=WINEDEBUG=-all
+    #- --env=MESA_GLTHREAD=true
+    #- --env=__GL_THREADED_OPTIMIZATIONS=1
 
 modules:
+    - name: setup-wine-compat32
+      buildsystem: simple
+      build-commands:
+        - mkdir -p /app/lib/wine-32bit
+        # is this really necessary?
+        - ln -s /app/lib/wine-32bit/lib/ld-linux.so.2 /app/lib/ld-linux.so.2
+
+
     - name: path-of-building
       buildsystem: simple
-      build-commands: 
-        - mkdir -p /app/lib/32bit
-        - ln -s /app/lib/32bit/lib/ld-linux.so.2 /app/lib/ld-linux.so.2
+      build-commands:
         - install -d /app/bin
-        - unzip -qq -d /app/bin PathOfBuilding-1.4.131.zip
+        - install -d /app/wine
+        - install pob-installer.exe /app/bin
         - install path-of-building /app/bin
+          #- wineboot
+          #- wine64 /app/bin/pob-installer.exe
+
       sources:
         - type: file
-          path: PathOfBuilding-1.4.131.zip
+          dest-filename: pob-installer.exe
+          url: https://github.com/Openarl/PathOfBuilding/releases/download/v1.4.131/PathOfBuilding-Setup-1.4.131.exe
+          sha256: 21f8e84a452a6600d8baf200966ee5684f267a0f0046feab8f5691f65856ace2
 
         - type: script
           dest-filename: path-of-building
           commands:
-            - export WINEARCH=win64
-            - wineboot
-            - wine64 '/app/bin/Path of Building.exe'
+            - wine64 '/var/data/wine/drive_c/Program Files/Path of Building/Path of Building.exe'
